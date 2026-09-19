@@ -1,0 +1,5 @@
+.DS_Store
+deps/build/
+*.dSYM/
+certificates/
+
