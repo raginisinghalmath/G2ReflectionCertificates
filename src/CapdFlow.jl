@@ -133,8 +133,8 @@ end
 decimal(x::BigFloat)=string(x)
 decimal(x::Real)=string(BigFloat(x))
 
-function parse_interval(lower,upper)
-    checked(iv(parse(BigFloat,lower),parse(BigFloat,upper)))
+function parse_interval(lower, upper)
+    checked(iv("[$lower, $upper]"))
 end
 
 function parse_output(output,n)
