@@ -6,6 +6,10 @@ for two cohomogeneity-one nearly parallel G2 structures obtained by reflection:
 - the `tau4` solution on the Berger space;
 - the `tau23` solution in the exactly U(1)-invariant subfamily `nu = 0`.
 
+Both certificates use `lambda = 6/sqrt(5)`. This release also contains the
+floating-point searches listed below. The general-`k` experiments for
+`k = 2,...,8` discussed in Remark 5.10 of the manuscript are not included.
+
 The code has four rigorous parts:
 
 1. outward-rounded interval arithmetic for the regularized equations;
@@ -17,37 +21,65 @@ The scripts report success only after the singular start, the complete flow,
 the real G2 chamber, the full interval Jacobian and the strict Krawczyk
 inclusion have all been verified.
 
-## Requirements
+## Requirements and reference configuration
 
 - Julia 1.12;
 - a C++17 compiler;
-- GMP and MPFR;
-- CAPD compiled with multiprecision support.
+- CMake and Git for building CAPD;
+- GMP and MPFR, including their development headers;
+- `pkg-config`, required by the installed CAPD configuration script;
+- CAPD compiled with multiprecision support and a working `capd-config`.
 
 The Julia environment fixes `IntervalArithmetic` at version `1.0.10`.
+A validation of both certificate scripts used the following configuration:
 
-One way to install CAPD is:
+| Component | Version or setting |
+| --- | --- |
+| Julia | 1.12.6 |
+| IntervalArithmetic | 1.0.10 |
+| CAPD | 6.1.0, commit `37057e5899bccaa6cd5701057b7e6ea5e232ef8b` |
+| CAPD backend | Native, with multiprecision enabled |
+| C++ compiler | GCC 13.3.0 on Linux |
+| GMP runtime | 6.3.0 |
+| MPFR runtime | 4.2.1 |
+| Julia and CAPD working precision | 256 bits |
+
+### Install the pinned CAPD revision
+
+For a new installation, use the specific revision below:
 
 ```bash
-git clone https://github.com/CAPDGroup/CAPD.git
-cd CAPD
-mkdir build
-cd build
-cmake .. -DCMAKE_INSTALL_PREFIX="$HOME/capd" -DCAPD_ENABLE_MULTIPRECISION=ON
-cmake --build . -j
-cmake --install .
+git clone https://github.com/CAPDGroup/CAPD.git CAPD
+git -C CAPD checkout --detach 37057e5899bccaa6cd5701057b7e6ea5e232ef8b
+cmake -S CAPD -B CAPD/build \
+  -DCMAKE_INSTALL_PREFIX="$HOME/capd" \
+  -DCAPD_ENABLE_MULTIPRECISION=ON
+cmake --build CAPD/build -j
+cmake --install CAPD/build
+
+export CAPD_PREFIX="$HOME/capd"
+export CAPD_CONFIG="$CAPD_PREFIX/bin/capd-config"
+"$CAPD_CONFIG" --cflags
+"$CAPD_CONFIG" --libs
 ```
 
-The Julia build script searches for CAPD in the following order:
+The last two commands must succeed. If they report that `pkg-config` is
+missing, install it before continuing. For an existing CAPD installation,
+set `CAPD_CONFIG` to its configuration executable, or set `CAPD_PREFIX`
+to its installation directory.
+
+The Julia build script tries:
 
 1. the executable named by `CAPD_CONFIG`;
 2. `$CAPD_PREFIX/bin/capd-config`;
-3. `capd-config` on `PATH`;
-4. the headers and library under `$CAPD_PREFIX`.
+3. `capd-config` on `PATH`.
 
-If `CAPD_PREFIX` is not set, it defaults to `$HOME/capd`. On Apple silicon,
-GMP and MPFR are searched for under `/opt/homebrew`; this can be changed by
-setting `GMP_PREFIX`.
+A working configuration script is required so that the compiler flags match
+the installed CAPD backend. If `CAPD_PREFIX` is not set, it defaults to
+`$HOME/capd`. On Apple silicon, GMP and MPFR are searched for under
+`/opt/homebrew`; this can be changed by setting `GMP_PREFIX`.
+The certificate flow rebuilds the C++ driver by default and prints the build
+command, compiler version and executable SHA256 hash.
 
 ## Set up the Julia environment
 
@@ -91,8 +123,10 @@ uniqueness are established by the CAPD and Krawczyk programs below.
 More precisely, each program constructs a high-order initial value from the
 regularized equation, integrates the ordinary differential equation with an
 adaptive Dormand--Prince method, and applies damped Newton iteration to the
-shooting residual.  Positivity of the three chamber quantities is checked
-throughout every right-hand-side evaluation and reported at the final time.
+shooting residual. The floating-point right-hand-side evaluations check that
+the square-root radicands are positive, and the final three chamber margins
+are reported. The rigorous CAPD certificates check the three required chamber
+signs throughout every validated integration step.
 The source shared by the two programs is `src/ApproximateShooting.jl`; it does
 not call CAPD and should be regarded only as a reproducible way to locate the
 candidate zeros subsequently certified by the interval programs.  Having
@@ -151,19 +185,21 @@ T1 > delta_eta,   T2 > delta_xi.
 ```
 
 The script prints the singular values and numerical rank of the transformed
-eight-by-eight matching Jacobian.  Full rank means that the computed match is
-locally isolated when `lambda` is fixed.  A positive-dimensional family would
-require a genuine Jacobian kernel (or an additional varying normalization),
-and the script prints a candidate kernel basis when the numerical rank is less
-than eight.  Any apparent small singular value should be checked at higher precision.
-As with the other approximation scripts, this program finds candidates but
-does not prove the existence of an exact match.
+eight-by-eight matching Jacobian. At an exact match, its two time-derivative
+columns agree: `dM/dT1 = Phi(q) = dM/dT2`. Thus `(dT1,dT2) = (1,-1)` is an
+expected kernel direction. It moves the joining orbit along the same metric.
+The unreduced matching derivative therefore cannot have rank eight at an
+exact match. A computed rank of seven is consistent with this joining freedom;
+it does not by itself establish a family of distinct metrics. Additional
+kernel directions would require further analysis after fixing the joining
+orbit and accounting for dependent matching conditions.
 
-Compile and test the CAPD driver:
-
-```bash
-julia --startup-file=no --project=. scripts/test_capd_setup.jl
-```
+The matching residual must be read together with the reported start-extrapolation
+error estimate. A residual smaller than that estimate does not establish the
+same accuracy for the exact matching problem. Richardson extrapolation supplies
+a numerical error estimate, rather than a rigorous interval bound. This program
+finds candidates and tests the known squashed-S7 benchmark; it supplies no
+rigorous existence, uniqueness or moduli certificate.
 
 ## Run the two certificates
 
@@ -182,7 +218,9 @@ This validates a zero in the box centred at
   0.7656914313714904)
 ```
 
-with radius `1e-10` in every coordinate.
+with radius `1e-10` in every coordinate. The default script applies
+`radius_scale = 1/10000` to the base radii `1e-6` in `G2Equations.parameters`.
+The resulting certificate establishes uniqueness in this smaller box.
 
 For the U(1)-invariant `tau23` certificate, run:
 
@@ -207,10 +245,45 @@ A successful run ends with
 SUCCESS: strict Krawczyk inclusion certified with CAPD C1 flow.
 ```
 
-Each certificate also prints the Julia and package versions and the SHA256
-hashes of all source files used in the computation.
+Each certificate also prints the Julia and IntervalArithmetic versions,
+working precision, hashes of `Project.toml`, `Manifest.toml` and the files in
+`src/` and `deps/`, the CAPD build command, compiler version and executable hash.
 
-## Repository contents
+### Save the final certificate logs
+
+First commit the final source and scripts, including any newly added files.
+Then run the commands below from the repository root. Use a shell supporting
+`pipefail`, such as Bash or Zsh, so a failed Julia command remains a failed
+command when its output is saved through `tee`:
+
+```bash
+mkdir -p logs
+set -o pipefail
+export JULIA_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+
+julia --startup-file=no --project=. scripts/test_capd_setup.jl 2>&1 | tee logs/capd_setup.log
+julia --startup-file=no --project=. test/runtests.jl 2>&1 | tee logs/julia_tests.log
+julia --startup-file=no --project=. scripts/certify_tau4_capd.jl 2>&1 | tee logs/tau4.log
+julia --startup-file=no --project=. scripts/certify_tau23_u1_capd.jl 2>&1 | tee logs/tau23_u1.log
+
+git rev-parse HEAD > logs/repository_commit.txt
+git status --short > logs/working_tree_status.txt
+git diff HEAD > logs/local_changes.patch
+```
+
+Keep the logs with that exact submission release. If any source or script
+changes after a certificate run, rerun the affected certificate and update the
+recorded revision. `working_tree_status.txt` should show no pending source or script changes;
+untracked output logs are harmless. If an installed CAPD revision or the
+GMP/MPFR versions differ from the reference configuration above, record the
+versions used alongside the successful logs.
+
+A certificate succeeds only if it exits successfully and prints the final
+`SUCCESS: strict Krawczyk inclusion certified with CAPD C1 flow.` message.
+A failed run is not an existence or uniqueness certificate.
+
+## Main repository files
 
 ```text
 Project.toml
