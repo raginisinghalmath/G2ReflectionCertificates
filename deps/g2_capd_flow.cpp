@@ -20,18 +20,24 @@ static MpFloat widen_hi(const MpFloat& x) { return x + widen_amount(x); }
 static void print_interval(const char* tag, int i, int j,
                            const MpInterval& x) {
   std::ostringstream out;
-  out.precision(90);
   out << tag << " " << i;
   if (j >= 0) out << " " << j;
-  out << " " << widen_lo(x.leftBound())
-      << " " << widen_hi(x.rightBound()) << "\n";
+
+  out << " ";
+  widen_lo(x.leftBound()).put(out, MpFloat::RoundDown);
+  out << " ";
+  widen_hi(x.rightBound()).put(out, MpFloat::RoundUp);
+  out << "\n";
+
   std::cout << out.str();
 }
 
 static void print_lower(const char* tag, int i, const MpFloat& x) {
   std::ostringstream out;
-  out.precision(90);
-  out << tag << " " << i << " " << widen_lo(x) << "\n";
+  out << tag << " " << i << " ";
+  widen_lo(x).put(out, MpFloat::RoundDown);
+  out << "\n";
+
   std::cout << out.str();
 }
 
