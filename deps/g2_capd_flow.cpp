@@ -82,15 +82,16 @@ int main(int argc, char* argv[]) {
 
     const std::string field = read_file(argv[2]);
     MpIMap vector_field(field.c_str());
-    const MpFloat lambda_lower(argv[6]), lambda_upper(argv[7]);
+    const MpFloat lambda_lower(argv[6], MpFloat::RoundDown);
+    const MpFloat lambda_upper(argv[7], MpFloat::RoundUp);
     vector_field.setParameter(
         "lam", MpInterval(widen_lo(lambda_lower), widen_hi(lambda_upper)));
     vector_field.setParameter("delta", MpInterval(MpFloat(argv[8])));
 
     MpIVector initial(dimension);
     for (int i = 0; i < dimension; ++i) {
-      const MpFloat lower(argv[9 + 2 * i]);
-      const MpFloat upper(argv[10 + 2 * i]);
+     const MpFloat lower(argv[9 + 2 * i], MpFloat::RoundDown);
+    const MpFloat upper(argv[10 + 2 * i], MpFloat::RoundUp);
       initial[i] = MpInterval(widen_lo(lower), widen_hi(upper));
     }
 
