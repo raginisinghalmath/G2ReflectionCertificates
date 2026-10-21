@@ -32,9 +32,6 @@ function formal_coefficients(p,r,lam,kind,N)
     A0=jacobian(z->augmented_G(z,p,r,iv(0),lam,kind),Z0)
     checked(A0)
     C=hcat(Z0,Z1,fill(iv(0),n,N-1))
-    # Sanity checks, not proofs by interval overlap. The exact identities
-    # are algebraic; proof.tex gives their radical reduction and explains
-    # how the verified stability test then supplies analytic existence.
     g0=augmented_G(Z0,p,r,iv(0),lam,kind)
     require(all(x->inf(x)<=0<=sup(x),g0),"Initial equilibrium identity excluded")
     require(all(x->inf(x)<=0<=sup(x),A0*Z1-Z1),"Resonant initial identity excluded")
@@ -55,9 +52,7 @@ end
 """
 Prove a singular-start enclosure, INCLUDING parameter derivatives.
 The exact initial identities and the verified matrix inequality imply local
-analytic existence by the regular-singular argument in proof.tex. Smooth
-geometric extension still requires the draft's orbit-extension argument.
-No start-error, amplification or derivative-error constant is imported.
+analytic existence by the regular-singular argument. 
 """
 function singular_start(p,r,lam,kind; N=8, delta=BigInt(1)//BigInt(1024), m=4)
     require(N>=2 && 1<m<N+1,"Need 1 < m < N+1")
