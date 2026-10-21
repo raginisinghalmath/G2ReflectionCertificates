@@ -64,15 +64,23 @@ println(result.singular_values)
 @printf("estimated condition number = %.6e\n", result.condition_number)
 println("numerical rank = ", result.numerical_rank,
         " (relative threshold ", result.rank_tolerance, ")")
+println("At an exact match, moving the joining orbit gives an expected kernel.")
+println("In the time coordinates this direction is (dT1,dT2)=(1,-1).")
 if result.numerical_rank == 8
-    println("The computed match is locally isolated at fixed lambda.")
-    println("Thus this run finds one glued solution, not a positive-dimensional family.")
+    println("An exact match cannot have rank eight in this unreduced formulation.")
+    println("The reported numerical rank does not establish local isolation.")
 else
-    println("The numerical Jacobian has an apparent kernel of dimension ",
-            8 - result.numerical_rank, ".")
+    println("Numerical kernel dimension = ", 8 - result.numerical_rank)
     println("Kernel basis in the transformed parameter coordinates:")
     display(result.kernel_basis)
-    println("Repeat at higher precision before interpreting this as a family.")
+    println("The joining freedom alone accounts for one kernel direction.")
 end
+println("These numerical diagnostics do not determine geometric rigidity or moduli.")
+
+if norm(result.residual, Inf) <= result.xi_extrapolation_error
+    println("\nThe residual is no larger than the estimated xi start error.")
+    println("It therefore does not establish that accuracy for the exact matching problem.")
+end
+println("The Richardson start error is an estimate, not a rigorous interval bound.")
 
 println("\nThis floating-point computation locates candidates only; it is not a proof.")
