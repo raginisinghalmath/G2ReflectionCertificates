@@ -73,8 +73,8 @@ function build_attempt(command)
     end
 end
 
-"""Compile the audited multiprecision CAPD driver, following Alberto's setup."""
-function build_capd_driver(; force=false)
+"""Compile using a working CAPD configuration; rebuild by default."""
+function build_capd_driver(; force=true)
     isfile(DRIVER_SOURCE) || error("Missing CAPD driver source: $DRIVER_SOURCE")
     digest=bytes2hex(sha256(read(DRIVER_SOURCE)))
     if !force && isfile(DRIVER_BINARY) && isfile(DRIVER_STAMP) &&
@@ -94,46 +94,54 @@ function build_capd_driver(; force=false)
     path_config===nothing || push!(configs,path_config)
     unique!(configs)
 
-    attempts=Tuple{Vector{String},Vector{String}}[]
-    for config in configs
-        try
-            push!(attempts,(flag_output(`$config --cflags`),
-                            flag_output(`$config --libs`)))
-        catch
-        end
-    end
-    fallback_cflags=["-I"*joinpath(prefix,"include")]
-    if Sys.isapple() && Sys.ARCH in (:aarch64,:arm64)
-        append!(fallback_cflags,["-D__USE_NATIVE__","-D__HAVE_MPFR__"])
-    end
-    push!(attempts,(fallback_cflags,["-L"*joinpath(prefix,"lib"),"-lcapd"]))
-
     gmp_prefix=get(ENV,"GMP_PREFIX",
                    Sys.isapple() && isdir("/opt/homebrew") ? "/opt/homebrew" : "")
     extra_compile=isempty(gmp_prefix) ? String[] : ["-I"*joinpath(gmp_prefix,"include")]
     extra_link=isempty(gmp_prefix) ? String[] : ["-L"*joinpath(gmp_prefix,"lib")]
     messages=String[]
-    for (cflags,lflags) in attempts
-        args=vcat([compiler,"-O2","-std=c++17",DRIVER_SOURCE],cflags,
-                  extra_compile,["-o",DRIVER_BINARY],lflags,extra_link,
-                  ["-lmpfr","-lgmp"])
-        ok,err=build_attempt(Cmd(args))
-        if ok
-            write(DRIVER_STAMP,digest*"\n")
-            println("CAPD driver compiled: ",DRIVER_BINARY)
-            return DRIVER_BINARY
+    for config in configs
+        try
+            cflags=flag_output(`$config --cflags`)
+            lflags=flag_output(`$config --libs`)
+            isempty(lflags) && error("capd-config returned no linker flags")
+            args=vcat([compiler,"-O2","-std=c++17",DRIVER_SOURCE],cflags,
+                      extra_compile,["-o",DRIVER_BINARY],lflags,extra_link,
+                      ["-lmpfr","-lgmp"])
+            println("CAPD configuration: ",config)
+            println("C++ compiler: ",strip(read(`$compiler --version`,String)))
+            println("CAPD build command: ",Cmd(args))
+            ok,err=build_attempt(Cmd(args))
+            if ok
+                write(DRIVER_STAMP,digest*"\n")
+                println("CAPD driver compiled: ",DRIVER_BINARY)
+                println("CAPD executable SHA256: ",
+                        bytes2hex(sha256(read(DRIVER_BINARY))))
+                return DRIVER_BINARY
+            end
+            push!(messages,config*":\n"*err)
+        catch err
+            push!(messages,config*":\n"*sprint(showerror,err))
         end
-        lines=filter(x->!isempty(x),split(strip(err),'\n'))
-        push!(messages,isempty(lines) ? "unknown compiler error" : first(lines))
     end
-    error("CAPD driver compilation failed:\n"*join(messages,"\n")*
-          "\nSet CAPD_CONFIG or CAPD_PREFIX to the multiprecision CAPD installation.")
+    details=isempty(messages) ? "No capd-config executable was found." :
+                               join(messages,"\n\n")
+    error("CAPD driver compilation failed:\n"*details*
+          "\nUse CAPD built with multiprecision support and a working capd-config."*
+          "\nSet CAPD_CONFIG or CAPD_PREFIX to that installation."*
+          "\nIf capd-config reports 'pkg-config: command not found', install pkg-config.")
 end
 
-decimal(x::BigFloat)=string(x)
-decimal(x::Real)=string(BigFloat(x))
+# Write the exact finite decimal expansion of each binary endpoint.
+# This avoids rounding the endpoint before it reaches CAPD.
+function decimal(x::BigFloat)
+    require(isfinite(x),"Cannot send a non-finite value to CAPD")
+    q=Rational{BigInt}(x)
+    k=ndigits(denominator(q);base=2)-1
+    string(numerator(q)*big(5)^k,"e-",k)
+end
+decimal(x::Real)=decimal(BigFloat(x))
 
-function parse_interval(lower, upper)
+function parse_interval(lower,upper)
     checked(iv("[$lower, $upper]"))
 end
 
@@ -153,7 +161,7 @@ function parse_output(output,n)
             derivative[i,j]=parse_interval(fields[4],fields[5])
             derivative_seen[i,j]=true
         elseif fields[1]=="MARGIN"
-            margins[parse(Int,fields[2])+1]=parse(BigFloat,fields[3])
+            margins[parse(Int,fields[2])+1]=BigFloat(fields[3],RoundDown)
         elseif fields[1]=="STEPS"
             steps=parse(Int,fields[2])
         elseif fields[1]=="OK"
@@ -177,7 +185,10 @@ function capd_flow(start,terminal_time,lam,kind;
                    order=24,tolerance="1e-26",bits=256)
     d,_=dimensions(kind); n=d+1
     T=checked(terminal_time)
-    require(inf(T)>BigFloat(start.delta),"Terminal time is not after delta")
+    delta=BigFloat(start.delta;precision=bits)
+    require(isfinite(delta) && Rational{BigInt}(delta)==start.delta,
+            "Start time must be exactly representable at CAPD precision")
+    require(inf(T)>delta,"Terminal time is not after delta")
     z=checked(vcat(start.q,[T]))
     require(length(z)==n,"Wrong CAPD state dimension")
     binary=build_capd_driver()
@@ -185,7 +196,7 @@ function capd_flow(start,terminal_time,lam,kind;
         write(io,capd_field(kind)); close(io)
         args=String[binary,kind==:tau4 ? "4" : "23",path,string(order),
                     string(tolerance),string(bits),decimal(inf(lam)),
-                    decimal(sup(lam)),decimal(start.delta)]
+                    decimal(sup(lam)),decimal(delta)]
         for x in z
             push!(args,decimal(inf(x)),decimal(sup(x)))
         end
