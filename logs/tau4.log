@@ -1,0 +1,70 @@
+G2 CAPD C1 certificate: tau4
+Julia version: 1.12.6
+IntervalArithmetic version: 1.0.10
+BigFloat/CAPD precision: 256 bits
+SHA256 Project.toml 19d2bd89cdfde0b94595e096157c542eb84da03b5d859d467b4b8ec6f44fdfda
+SHA256 Manifest.toml 2224cd1e6491ec9586eef0fcf21c9c08f70a07a845093d79437430ab9ab5974b
+SHA256 src/ApproximateS7Gluing.jl ff177c06a82f97e362a6c247b53bba695cb5b5bc61bd9682bb216743b9bb72c8
+SHA256 src/ApproximateShooting.jl e94fa2124484dbbd223075dfdcd64824497faf764fd1e60b4613a94754e66c4a
+SHA256 src/CapdFlow.jl 82eb22d5e477e0f59abc06fef57bf70af6ba97be8a0f1b94f7c352017a7253a7
+SHA256 src/G2CapdCertificates.jl 570a66acad8bd42644672ba31c9ec7207e774a8d1922126431be5b4eb6c3a937
+SHA256 src/G2Equations.jl 9eca7cf22b2822521286e010f8bc592a2a8c211862853e9293b856b805f37c83
+SHA256 src/IntervalKrawczyk.jl 8439db03eecdc5fc1dca966137f4f0521c89cccc5d8101c64b2dc70c297b28cc
+SHA256 src/SingularStart.jl 8fb7754877ac6c537e982158883da8552b39b3fd1e64e863ba43fb4e5ff20cb8
+SHA256 src/ValidatedArithmetic.jl 716ff9d0d1e1807855aedb1eecf69302804dcc933bf66d14777cbb6cf8cc5c42
+SHA256 deps/g2_capd_flow.cpp 49a47f3f65c2f7662927705e77fe14ecfd32ad1f2dc6c109195ef1b078a1bab9
+Flow engine: CAPD MpIOdeSolver with MpC1Rect2Set.
+Parameter centre = IntervalArithmetic.Interval{BigFloat}[[0.0423299, 0.04233]₂₅₆_com, [-0.0646995, -0.0646994]₂₅₆_com, [0.00675926, 0.00675927]₂₅₆_com, [0.765691, 0.765692]₂₅₆_com]
+Parameter box = IntervalArithmetic.Interval{BigFloat}[[0.0423299, 0.04233]₂₅₆_com, [-0.0646995, -0.0646994]₂₅₆_com, [0.00675926, 0.00675927]₂₅₆_com, [0.765691, 0.765692]₂₅₆_com]
+Singular start: delta=1//8 order=24
+Computing centre Fuchsian enclosure
+Start: computing order 25 coefficient enclosures, including sensitivities
+Start PASS: Rbound=4.168589897044009820487688080700548651088015916421023023552491977843231351435376e+06 CL=11.47184039315721583243647607235273934947264476538905276095609459346565240259231 H0=2.277209426829359594671876055877162846964496130828964481336940846482529342113384e+06 H=4.554418853658719189343752111754325693928992261657928962693881692965058684226812e+06
+Interval LDL lower pivots: P=0.07825941438275465304208332523080336141596315099326949810521233159332969026326802 energy=0.855678126425461490581953515897098686012299155772869086023106467897313873464806
+Computing centre CAPD C1 flow
+CAPD configuration: /Users/bbe4602/capd/bin/capd-config
+C++ compiler: Apple clang version 16.0.0 (clang-1600.0.26.6)
+Target: arm64-apple-darwin24.0.0
+Thread model: posix
+InstalledDir: /Library/Developer/CommandLineTools/usr/bin
+CAPD build command: `/usr/bin/clang++ -O2 -std=c++17 /Users/bbe4602/Desktop/G2ReflectionCertificates/deps/g2_capd_flow.cpp -I/Users/bbe4602/CAPD/include -std=c++17 -O2 -frounding-math -D__USE_NATIVE__ -D__HAVE_MPFR__ -I/opt/homebrew/include -o /Users/bbe4602/Desktop/G2ReflectionCertificates/deps/build/g2_capd_flow -L/Users/bbe4602/CAPD/lib -lcapd -L/opt/homebrew/lib -lmpfr -lgmp`
+CAPD driver compiled: /Users/bbe4602/Desktop/G2ReflectionCertificates/deps/build/g2_capd_flow
+CAPD executable SHA256: 6daa5ed023ae8e2e102641596874525911f04c7b172869f290c81dd8b4d90717
+CAPD: s=1.75170898438e-1  diameter<=6.949e-17  steps=40
+CAPD: s=4.75708007813e-1  diameter<=2.258e-16  steps=80
+CAPD: s=9.30297851563e-1  diameter<=6.230e-16  steps=120
+CAPD: s=1.00000000000  diameter<=7.044e-16  steps=126
+CAPD PASS: steps=126 chamber margins >= BigFloat[0.03527285003913993383305721648903011343063142290159550357195593571610623103951695, 0.03433431266488914839382181952373716865438966150465842984806303683871160281854556, 0.1721909702994694575754078344962502012564538941798982983481156052617252975117573]
+Computing full-box Fuchsian enclosure
+Start: computing order 25 coefficient enclosures, including sensitivities
+Start PASS: Rbound=3.098146733262697445136207089994837087476631177878750370230952257629839187859453e+07 CL=11.47184039315721244951716993087654028800620641081203052256954390358754531167623 H0=1.692449754217670308007204220923738707425237483648957732331691753412489922726357e+07 H=3.384899508435340616014408441847477414850474967297915464665383506824979845452762e+07
+Interval LDL lower pivots: P=0.07825941438275469557410085889302712672214096596297777432825563974127054205405181 energy=0.85567795241243759978520934475186904612846701418991188591166037098897206471397
+Computing full-box CAPD C1 flow
+CAPD configuration: /Users/bbe4602/capd/bin/capd-config
+C++ compiler: Apple clang version 16.0.0 (clang-1600.0.26.6)
+Target: arm64-apple-darwin24.0.0
+Thread model: posix
+InstalledDir: /Library/Developer/CommandLineTools/usr/bin
+CAPD build command: `/usr/bin/clang++ -O2 -std=c++17 /Users/bbe4602/Desktop/G2ReflectionCertificates/deps/g2_capd_flow.cpp -I/Users/bbe4602/CAPD/include -std=c++17 -O2 -frounding-math -D__USE_NATIVE__ -D__HAVE_MPFR__ -I/opt/homebrew/include -o /Users/bbe4602/Desktop/G2ReflectionCertificates/deps/build/g2_capd_flow -L/Users/bbe4602/CAPD/lib -lcapd -L/opt/homebrew/lib -lmpfr -lgmp`
+CAPD driver compiled: /Users/bbe4602/Desktop/G2ReflectionCertificates/deps/build/g2_capd_flow
+CAPD executable SHA256: 6daa5ed023ae8e2e102641596874525911f04c7b172869f290c81dd8b4d90717
+CAPD: s=4.18823242188e-1  diameter<=1.287e-8  steps=40
+CAPD: s=1.00000000000  diameter<=4.679e-8  steps=68
+CAPD PASS: steps=68 chamber margins >= BigFloat[0.03527284924454977755651235379041903487199432489212959884779602137732519513370412, 0.03433431187029899090520761777817459846511442635081645142598644075650281712590901, 0.1721909631910682979998415099836121104035759254501282378941283493707963506117179]
+F(0) enclosure = IntervalArithmetic.Interval{BigFloat}[[5.06868e-16, 5.91126e-16]₂₅₆_com, [8.20017e-16, 8.85932e-16]₂₅₆_com, [-1.73055e-14, -1.6587e-14]₂₅₆_com, [-1.59801e-14, -1.52863e-14]₂₅₆_com]
+Scaled Jacobian enclosure = 
+4×4 Matrix{IntervalArithmetic.Interval{BigFloat}}:
+  [1.3239e-10, 1.32433e-10]₂₅₆_com     [7.96252e-11, 7.96587e-11]₂₅₆_com  [-1.52978e-11, -1.52918e-11]₂₅₆_com  [3.09241e-11, 3.09248e-11]₂₅₆_com
+  [1.13185e-10, 1.13228e-10]₂₅₆_com    [8.39039e-11, 8.39369e-11]₂₅₆_com  [-2.2262e-11, -2.22562e-11]₂₅₆_com   [5.55705e-12, 5.55767e-12]₂₅₆_com
+ [-1.81923e-10, -1.81855e-10]₂₅₆_com   [1.33412e-10, 1.33466e-10]₂₅₆_com   [2.98664e-10, 2.98678e-10]₂₅₆_com   [1.54183e-12, 1.54278e-12]₂₅₆_com
+  [1.47363e-10, 1.47429e-10]₂₅₆_com   [-1.31713e-10, -1.3166e-10]₂₅₆_com   [2.66608e-10, 2.66622e-10]₂₅₆_com   [1.68965e-11, 1.68975e-11]₂₅₆_com
+Fixed binary preconditioner = 
+4×4 Matrix{IntervalArithmetic.Interval{BigFloat}}:
+ [-2.20873e+9, -2.20872e+9]₂₅₆_com    [6.99403e+9, 6.99404e+9]₂₅₆_com     [-1.24868e+9, -1.24867e+9]₂₅₆_com   [1.85602e+9, 1.85603e+9]₂₅₆_com
+ [-1.61442e+8, -1.61441e+8]₂₅₆_com    [5.90122e+9, 5.90123e+9]₂₅₆_com      [2.06893e+9, 2.06894e+9]₂₅₆_com   [-1.83428e+9, -1.83427e+9]₂₅₆_com
+ [-1.48715e+9, -1.48714e+9]₂₅₆_com    [1.8512e+9, 1.85121e+9]₂₅₆_com       [1.65904e+9, 1.65905e+9]₂₅₆_com    [1.96144e+9, 1.96145e+9]₂₅₆_com
+  [4.14743e+10, 4.14744e+10]₂₅₆_com  [-4.42292e+10, -4.42291e+10]₂₅₆_com   [8.38825e+8, 8.38826e+8]₂₅₆_com   [-2.25304e+9, -2.25303e+9]₂₅₆_com
+||I-AJ||_infinity <= 0.003705693428228348271877643640893280926307751827759478044661930242250596161617257
+Krawczyk image = IntervalArithmetic.Interval{BigFloat}[[-0.000578314, 0.000584518]₂₅₆_com, [-0.000504797, 0.000507678]₂₅₆_com, [-0.000319132, 0.000435164]₂₅₆_com, [-0.00371604, 0.00370394]₂₅₆_com]
+Strict inclusion margin >= 0.9962839688626594255825902365878558292421038098662674002340201395762754756469417
+SUCCESS: strict Krawczyk inclusion certified with CAPD C1 flow.
